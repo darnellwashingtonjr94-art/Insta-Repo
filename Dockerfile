@@ -1,11 +1,10 @@
-# syntax=docker/dockerfile:1
-FROM rust:1.76-alpine as builder
+# Build stage
+FROM rust:1.76-alpine AS builder
 
 WORKDIR /usr/src/insta-repo
-COPY . .
 
-# Install tools required for vendored OpenSSL and static musl compilation
-RUN apk add --no-cache musl-dev perl make gcc ca-certificates
+# Copy project files
+COPY . .
 
 # Build with cache mounts to speed up dependency resolution
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
@@ -14,11 +13,11 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo build --release && \
     cp target/release/insta-repo /insta-repo-bin
 
-FROM scratch
+# Final runtime stage
+FROM alpine:latest
 
-# Enable secure outbound HTTPS requests
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# Copy the compiled binary from the builder stage
+COPY --from=builder /insta-repo-bin /usr/local/bin/insta-repo
 
-COPY --from=builder /insta-repo-bin /insta-repo
-
-ENTRYPOINT ["/insta-repo"]
+# Set the binary as the entrypoint
+ENTRYPOINT ["/usr/local/bin/insta-repo"]

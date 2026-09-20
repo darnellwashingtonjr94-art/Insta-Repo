@@ -1,10 +1,7 @@
-[dependencies]
-# Append the vendored feature to your existing OpenSSL dependency
-openssl = { version = "0.10", features = ["vendored"] }
+[package]
+name = "insta-repo"
+version = "0.1.0"
+edition = "2021"
 
-[profile.release]
-opt-level = "z"
-lto = true
-codegen-units = 1
-panic = "abort"
-strip = true
+[dependencies]
+# Add any required project dependencies here
